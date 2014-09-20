@@ -8,6 +8,8 @@ import android.support.wearable.view.ImageReference;
 import android.view.Gravity;
 import android.util.Log;
 
+import com.google.android.gms.wearable.PutDataRequest;
+
 /**
  * Constructs fragments as requested by the GridViewPager. For each row a
  * different background is provided.

@@ -3,6 +3,7 @@ package htn.logan.runningdj;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,9 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 
-public class MainActivity extends Activity {
 
+public class MainActivity extends Activity implements MessageApi.MessageListener {
+
+    private static boolean mPlayMobile = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +54,6 @@ public class MainActivity extends Activity {
      */
     public static class PlaceholderFragment extends Fragment {
 
-        static boolean playing = false;
         public PlaceholderFragment() {
 
         }
@@ -63,17 +67,30 @@ public class MainActivity extends Activity {
 
             btnPlay.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    if (playing){
+                    if (mPlayMobile){
                         player.stop();
-                        playing = false;
+                        mPlayMobile = false;
                     } else {
                         player.start();
-                        playing = true;
+                        mPlayMobile = true;
                     }
                 }
             });
+
             return rootView;
         }
     }
+
+    @Override
+    public void onMessageReceived(MessageEvent event) {
+        Log.d("message", "onMessageReceived: " + event.toString());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Change album art, song title, and pause / playing based on type of event.
+            }
+        });
+    }
+
 }
 
