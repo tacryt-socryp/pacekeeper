@@ -1,54 +1,64 @@
 package htn.logan.runningdj;
 
 import android.app.Activity;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.os.Bundle;
 import android.view.View;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.DataInputStream;
+import android.os.Environment;
 
-/**
- * Created by ehilb_000 on 2014-09-20.
- */
+
 public class Internal extends Activity
 {
     public View rootView;
-    Path path = Paths.get();
     public Internal(View rootView){
         rootView = this.rootView;
-    }
-
-    public void onPlayClicked(View v)
-    {
-        start();
-    }
-
-    public void onStopClicked(View v)
-    {
-        stop();
+        this.start();
     }
 
     boolean m_stop = false;
-    AudioTrack m_audioTrack;
+    AudioTrack at;
     Thread m_noiseThread;
 
     Runnable m_noiseGenerator = new Runnable()
     {
         public void run()
         {
-            Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
             /* 8000 bytes per second, 1000 bytes = 125 ms */
-            byte [] noiseData = new byte[1000];
-            //Random rnd = new Random();
 
-            while(!m_stop)
-            {
-                //rnd.nextBytes(noiseData);
-                m_audioTrack.write(noiseData, 0, noiseData.length);
+            String filepath = Environment.getExternalStorageDirectory().getAbsolutePath();
+            filepath = "/sdcard";
+
+            int bufferSize = 512;
+            int i = 0;
+            byte[] s = new byte[bufferSize];
+            FileInputStream fin;
+            DataInputStream dis;
+
+            try {
+                fin = new FileInputStream(filepath + "/test.wav");
+                dis = new DataInputStream(fin);
+
+                while(!m_stop && (i = dis.read(s, 0, bufferSize)) > -1) {
+                    at.write(s, 0, i);
+                }
+
+                at.flush();
+                at.stop();
+                at.release();
+                dis.close();
+                fin.close();
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     };
@@ -57,13 +67,20 @@ public class Internal extends Activity
     {
         m_stop = false;
 
-        /* 8000 bytes per second*/
-        m_audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 8000, AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_8BIT, 8000 /* 1 second buffer */,
+        int minBufferSize = AudioTrack.getMinBufferSize(
+                8000,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_8BIT);
+
+        at = new AudioTrack(
+                AudioManager.STREAM_MUSIC,
+                8000,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_8BIT,
+                minBufferSize,
                 AudioTrack.MODE_STREAM);
 
-        m_audioTrack.play();
-
+        at.play();
 
         m_noiseThread = new Thread(m_noiseGenerator);
         m_noiseThread.start();
@@ -72,6 +89,6 @@ public class Internal extends Activity
     void stop()
     {
         m_stop = true;
-        m_audioTrack.stop();
+        at.stop();
     }
 }

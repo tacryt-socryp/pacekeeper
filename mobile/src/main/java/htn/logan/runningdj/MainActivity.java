@@ -65,12 +65,12 @@ public class MainActivity extends Activity {
 
             btnPlay.setOnClickListener(new View.OnClickListener(){
                 public void onClick(View v){
-                    if(playing){
+                    if (playing){
                         player.stop();
                         playing = false;
-                    }
-                    else{
-                        player.stop();
+                    } else {
+                        player.start();
+                        playing = true;
                     }
                 }
             });
