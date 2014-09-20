@@ -12,22 +12,18 @@ import java.io.DataInputStream;
 import android.os.Environment;
 
 
-public class Internal extends Activity
-{
-    public View rootView;
-    public Internal(View rootView){
-        rootView = this.rootView;
+public class Internal extends Activity {
+
+    public Internal(View rootView) {
         this.start();
     }
 
     boolean m_stop = false;
     AudioTrack at;
-    Thread m_noiseThread;
+    Thread m_audioThread;
 
-    Runnable m_noiseGenerator = new Runnable()
-    {
-        public void run()
-        {
+    Runnable m_audioGenerator = new Runnable() {
+        public void run() {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
             /* 8000 bytes per second, 1000 bytes = 125 ms */
@@ -63,8 +59,7 @@ public class Internal extends Activity
         }
     };
 
-    void start()
-    {
+    void start() {
         m_stop = false;
 
         int minBufferSize = AudioTrack.getMinBufferSize(
@@ -82,12 +77,11 @@ public class Internal extends Activity
 
         at.play();
 
-        m_noiseThread = new Thread(m_noiseGenerator);
-        m_noiseThread.start();
+        m_audioThread = new Thread(m_audioGenerator);
+        m_audioThread.start();
     }
 
-    void stop()
-    {
+    void stop() {
         m_stop = true;
         at.stop();
     }

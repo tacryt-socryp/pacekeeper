@@ -1,7 +1,6 @@
 package htn.logan.runningdj;
 
 import android.app.Activity;
-import android.app.ActionBar;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,9 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
 import android.widget.Button;
-import android.widget.ToggleButton;
 
 
 public class MainActivity extends Activity {
@@ -54,6 +51,7 @@ public class MainActivity extends Activity {
 
         static boolean playing = false;
         public PlaceholderFragment() {
+
         }
 
         @Override
@@ -61,10 +59,10 @@ public class MainActivity extends Activity {
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             final Internal player = new Internal(rootView);
-            Button btnPlay = (Button)rootView.findViewById(R.id.btnPlay);
+            Button btnPlay = (Button) rootView.findViewById(R.id.btnPlay);
 
-            btnPlay.setOnClickListener(new View.OnClickListener(){
-                public void onClick(View v){
+            btnPlay.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
                     if (playing){
                         player.stop();
                         playing = false;
