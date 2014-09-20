@@ -10,9 +10,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
-import com.google.android.gms.common.*;
-import com.google.android.gms.common.api.*;
-import com.google.android.gms.fitness.*;
+import android.widget.Button;
+import android.widget.ToggleButton;
 
 
 public class MainActivity extends Activity {
@@ -53,6 +52,7 @@ public class MainActivity extends Activity {
      */
     public static class PlaceholderFragment extends Fragment {
 
+        static boolean playing = false;
         public PlaceholderFragment() {
         }
 
@@ -60,7 +60,22 @@ public class MainActivity extends Activity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            final Internal player = new Internal(rootView);
+            Button btnPlay = (Button)rootView.findViewById(R.id.btnPlay);
+
+            btnPlay.setOnClickListener(new View.OnClickListener(){
+                public void onClick(View v){
+                    if(playing){
+                        player.stop();
+                        playing = false;
+                    }
+                    else{
+                        player.stop();
+                    }
+                }
+            });
             return rootView;
         }
     }
 }
+

@@ -13,4 +13,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <GridLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play"
+            android:id="@+id/btnPlay"
+            android:layout_row="4"
+            android:layout_column="4" />
+    </GridLayout>
+
 </RelativeLayout>
