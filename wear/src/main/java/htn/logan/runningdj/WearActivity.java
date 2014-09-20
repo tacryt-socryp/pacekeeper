@@ -4,14 +4,17 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.wearable.view.GridViewPager;
 import android.content.res.Resources;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnApplyWindowInsetsListener;
 import android.view.WindowInsets;
 import com.google.android.gms.common.*;
 import com.google.android.gms.common.api.*;
+import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.MessageApi;
 //import com.google.android.gms.fitness.*;
 
-public class WearActivity extends Activity {
+public class WearActivity extends Activity implements MessageApi.MessageListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,4 +37,16 @@ public class WearActivity extends Activity {
         });
         pager.setAdapter(new GridPagerAdapter(this, getFragmentManager()));
     }
+
+    @Override
+    public void onMessageReceived(MessageEvent event) {
+        Log.d("message", "onMessageReceived: " + event.toString());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Change album art, song title, and pause / playing based on type of event.
+            }
+        });
+    }
+
 }
