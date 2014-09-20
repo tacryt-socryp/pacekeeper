@@ -16,7 +16,7 @@ import android.view.View;
 public class Internal extends Activity
 {
     public View rootView;
-    Path path = Paths.get()
+    Path path = Paths.get();
     public Internal(View rootView){
         rootView = this.rootView;
     }
