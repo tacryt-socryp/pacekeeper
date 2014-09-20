@@ -26,13 +26,12 @@ public class Internal extends Activity {
         public void run() {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-            /* 8000 bytes per second, 1000 bytes = 125 ms */
-
             String filepath = Environment.getExternalStorageDirectory().getAbsolutePath();
             filepath = "/sdcard";
 
             int bufferSize = 512;
             int i = 0;
+            int playbackRate = at.getPlaybackRate();
             byte[] s = new byte[bufferSize];
             FileInputStream fin;
             DataInputStream dis;
@@ -41,15 +40,19 @@ public class Internal extends Activity {
                 fin = new FileInputStream(filepath + "/test.wav");
                 dis = new DataInputStream(fin);
 
+                at.setPlaybackRate((int) (playbackRate * 1.1));
                 while(!m_stop && (i = dis.read(s, 0, bufferSize)) > -1) {
                     at.write(s, 0, i);
                 }
 
-                at.flush();
-                at.stop();
-                at.release();
                 dis.close();
                 fin.close();
+
+                at.flush();
+                at.release();
+                if (at.getPlayState() == at.PLAYSTATE_PLAYING) {
+                    at.stop();
+                }
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
