@@ -21,6 +21,11 @@ public class Internal extends Activity {
     boolean m_stop = false;
     AudioTrack at;
     Thread m_audioThread;
+    int playbackRate = 8000;
+
+    public void changeSpeed(double factor) {
+        at.setPlaybackRate((int) (playbackRate * factor));
+    }
 
     Runnable m_audioGenerator = new Runnable() {
         public void run() {
@@ -31,7 +36,6 @@ public class Internal extends Activity {
 
             int bufferSize = 512;
             int i = 0;
-            int playbackRate = at.getPlaybackRate();
             byte[] s = new byte[bufferSize];
             FileInputStream fin;
             DataInputStream dis;
@@ -40,7 +44,6 @@ public class Internal extends Activity {
                 fin = new FileInputStream(filepath + "/test.wav");
                 dis = new DataInputStream(fin);
 
-                at.setPlaybackRate((int) (playbackRate * 1));
                 while(!m_stop && (i = dis.read(s, 0, bufferSize)) > -1) {
                     at.write(s, 0, i);
                 }

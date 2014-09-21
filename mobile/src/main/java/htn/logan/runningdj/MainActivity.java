@@ -122,36 +122,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
     @Override
     public void onConnected(Bundle bundle) {
         Log.i("TAG", "Connected!");
-
-        invokeFitnessAPIs();
-    }
-
-    public void invokeFitnessAPIs() {
-        // Get the heart rate data type
-        DataType heartSummary = DataTypes.HEART_RATE_SUMMARY;
-
-        DataSourcesRequest req = new DataSourcesRequest.Builder()
-                .setDataSourceTypes(DataSource.TYPE_RAW)
-                .setDataTypes(DataTypes.HEART_RATE_SUMMARY)
-                .build();
-
-        // 2. Invoke the Sensors API with:
-        // - The Google API client object
-        // - The data sources request object
-        PendingResult<DataSourcesResult> pendingResult = Fitness.SensorsApi.findDataSources(mClient, req);
-
-        // 3. Obtain the list of data sources asynchronously
-        pendingResult.setResultCallback(new ResultCallback<DataSourcesResult>() {
-            @Override
-            public void onResult(DataSourcesResult dataSourcesResult) {
-                for (DataSource ds : dataSourcesResult.getDataSources()) {
-                    String dsName = ds.getName();
-                    Device device = ds.getDevice();
-                    Log.d("sens", dsName);
-                    Log.d("sens", device.getModel());
-                }
-            }
-        });
     }
 
     @Override

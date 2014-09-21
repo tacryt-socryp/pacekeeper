@@ -58,8 +58,8 @@ public class WearActivity extends Activity implements SensorEventListener {
         }
 
         initApi();
-        register(sensorManager, walkSensor, SensorManager.SENSOR_DELAY_GAME);
-        register(sensorManager, accelSensor, SensorManager.SENSOR_DELAY_GAME);
+        register(sensorManager, walkSensor, 500);
+        register(sensorManager, accelSensor, 500);
 
         pager.setOnApplyWindowInsetsListener(new OnApplyWindowInsetsListener() {
             @Override
