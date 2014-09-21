@@ -13,6 +13,7 @@ import android.widget.Button;
 
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.fitness.*;
 
 
 public class MainActivity extends Activity implements MessageApi.MessageListener {
