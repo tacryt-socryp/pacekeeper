@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.wearable.view.GridViewPager;
@@ -14,6 +15,9 @@ import android.view.View;
 import android.view.View.OnApplyWindowInsetsListener;
 import android.view.WindowInsets;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.DataInputStream;
@@ -35,12 +39,35 @@ public class WearActivity extends Activity implements SensorEventListener {
     private String nodeId;
     private SensorManager sensorManager;
     private Sensor walkSensor;
-    private Sensor accelSensor;
+    private static int updatePhone = 0;
+    private static double startSteps = 0;
+    private static double deltaSteps = 0;
+    Node finalNode;
+
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wear);
+        mGoogleApiClient = (new GoogleApiClient.Builder(this)).addApi(Wearable.API).build();
+        mGoogleApiClient.connect();
+        Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).setResultCallback(new ResultCallback() {
+
+            public void onResult(Result result) {
+                onResult((NodeApi.GetConnectedNodesResult) result);
+            }
+
+            public void onResult(NodeApi.GetConnectedNodesResult nodesResult) {
+                for(Node node:nodesResult.getNodes()){
+                    finalNode = node;
+                    //sendMessage(finalNode);
+                }
+
+            }
+
+        });
+
         final Resources res = getResources();
         final GridViewPager pager = (GridViewPager) findViewById(R.id.pager);
         sensorManager = ((SensorManager) getSystemService(Context.SENSOR_SERVICE));
@@ -51,15 +78,10 @@ public class WearActivity extends Activity implements SensorEventListener {
             if (ds.getName().equals("Step Counter Sensor")) {
                 walkSensor = sensorManager.getDefaultSensor(ds.getType());
             }
-            if (ds.getName().equals("Linear Acceleration Sensor")) {
-                accelSensor = sensorManager.getDefaultSensor(ds.getType());
-            }
             Log.d("beat", ds.toString());
         }
 
-        initApi();
         register(sensorManager, walkSensor, 500);
-        register(sensorManager, accelSensor, 500);
 
         pager.setOnApplyWindowInsetsListener(new OnApplyWindowInsetsListener() {
             @Override
@@ -72,6 +94,22 @@ public class WearActivity extends Activity implements SensorEventListener {
             }
         });
         pager.setAdapter(new GridPagerAdapter(this, getFragmentManager()));
+    }
+
+    private void sendMessage(final Node finalNode) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                byte[] payload = Double.toString(deltaSteps).getBytes();
+
+                MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, finalNode.getId(), "/LAUNCH", payload).await();
+                if (!result.getStatus().isSuccess()) {
+                    Log.e(getPackageName(), "ERROR: failed to send Message: " + result.getStatus());
+                } else {
+                    Log.d(getPackageName(), "SUCCESS: send Message: " + result.getStatus());
+                }
+            }
+        }).start();
     }
 
     void register(SensorManager sm, Sensor hs, int delay) {
@@ -90,46 +128,30 @@ public class WearActivity extends Activity implements SensorEventListener {
         super.onPause();
     }
 
-    private void initApi() {
-        client = getGoogleApiClient(this);
-        retrieveDeviceNode();
-    }
-
-    private GoogleApiClient getGoogleApiClient(Context context) {
-        return new GoogleApiClient.Builder(context)
-                .addApi(Wearable.API)
-                .build();
-    }
-
-    /**
-     * Connects to the GoogleApiClient and retrieves the connected device's Node ID. If there are
-     * multiple connected devices, the first Node ID is returned.
-     */
-    private void retrieveDeviceNode() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                client.blockingConnect(CONNECTION_TIME_OUT_MS, TimeUnit.MILLISECONDS);
-                NodeApi.GetConnectedNodesResult result =
-                        Wearable.NodeApi.getConnectedNodes(client).await();
-                List<Node> nodes = result.getNodes();
-                if (nodes.size() > 0) {
-                    nodeId = nodes.get(0).getId();
-                }
-                client.disconnect();
-            }
-        }).start();
-    }
-
 
     public void onSensorChanged(SensorEvent event) {
-        for (float val : event.values) {
-            Log.d("beat", Float.toString(val));
+        updatePhone++;
+        if (startSteps == 0) {
+            for (float val : event.values) {
+                if (val > 0) {
+                    startSteps = val;
+                }
+            }
+        } else {
+            for (float val : event.values) {
+                if (val > 0) {
+                    deltaSteps = deltaSteps + Math.abs(val - startSteps);
+                    startSteps = val;
+                }
+            }
+
         }
-        Log.d("beat", event.sensor.getName());
-        Log.d("beat", Integer.toString(event.values.length));
-        Log.d("beat", Integer.toString(event.accuracy));
-        Log.d("beat", Long.toString(event.timestamp));
+
+        if (updatePhone == 10) {
+            deltaSteps = deltaSteps / 20;
+            updatePhone = 0;
+            sendMessage(finalNode);
+        }
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
