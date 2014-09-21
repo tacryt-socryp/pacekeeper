@@ -9,7 +9,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.DataInputStream;
-import android.os.Environment;
 
 
 public class Internal extends Activity {
@@ -31,8 +30,7 @@ public class Internal extends Activity {
         public void run() {
             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-            String filepath = Environment.getExternalStorageDirectory().getAbsolutePath();
-            filepath = "/sdcard";
+            String filepath = "/sdcard";
 
             int bufferSize = 512;
             int i = 0;

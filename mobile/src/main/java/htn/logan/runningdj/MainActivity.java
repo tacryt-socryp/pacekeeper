@@ -36,7 +36,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
     private static final int REQUEST_OAUTH = 1000;
     private static final int RESULT_OK = 2000;
     private static boolean mPlayMobile = false;
-    private DataSourceListener mListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
