@@ -40,7 +40,7 @@ public class Internal extends Activity {
                 fin = new FileInputStream(filepath + "/test.wav");
                 dis = new DataInputStream(fin);
 
-                at.setPlaybackRate((int) (playbackRate * 1.5));
+                at.setPlaybackRate((int) (playbackRate * 1));
                 while(!m_stop && (i = dis.read(s, 0, bufferSize)) > -1) {
                     at.write(s, 0, i);
                 }
