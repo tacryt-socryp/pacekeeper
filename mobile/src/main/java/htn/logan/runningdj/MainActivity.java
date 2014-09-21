@@ -20,9 +20,6 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.fitness.*;
-import com.google.android.gms.wearable.MessageApi;
-import com.google.android.gms.wearable.MessageEvent;
-import com.google.android.gms.fitness.*;
 import android.content.IntentSender;
 import com.google.android.gms.common.api.Status;
 
@@ -30,6 +27,7 @@ import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends Activity implements ConnectionCallbacks, OnConnectionFailedListener {
@@ -38,6 +36,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
     private static final int REQUEST_OAUTH = 1000;
     private static final int RESULT_OK = 2000;
     private static boolean mPlayMobile = false;
+    private DataSourceListener mListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,71 +123,37 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
     public void onConnected(Bundle bundle) {
         Log.i("TAG", "Connected!");
 
-        // Now you can make calls to the Fitness APIs.
         invokeFitnessAPIs();
-    }
-
-    public void dumpDataSet(DataSet dataSet) {
-
-        Log.i("TAG", "Data type: " + dataSet.getDataType().getName());
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-
-        for (DataPoint dp : dataSet.getDataPoints()) {
-
-            // Obtain human-readable start and end times
-            long dpStart = dp.getStartTimeNanos() / 1000000;
-            long dpEnd = dp.getEndTimeNanos() / 1000000;
-            Log.i("TAG", "Data point:");
-            Log.i("TAG", "\tType: " + dp.getDataType().getName());
-            Log.i("TAG", "\tStart: " + dateFormat.format(dpStart));
-            Log.i("TAG", "\tEnd: " + dateFormat.format(dpEnd));
-            for(DataType.Field field : dp.getDataType().getFields()) {
-                String fieldName = field.getName();
-                Log.i("TAG", "\tField: " + fieldName + " Value: " + dp.getValue(field));
-            }
-        }
     }
 
     public void invokeFitnessAPIs() {
         // Get the heart rate data type
-        DataType heartRate = DataTypes.HEART_RATE_BPM;
         DataType heartSummary = DataTypes.HEART_RATE_SUMMARY;
 
-
-        // 1. Subscribe to fitness data (see previous examples)
-        PendingResult<Status> subscribeResult = Fitness.RecordingApi.subscribe(mClient, heartRate);
-
-        Status st1 = subscribeResult.await();
-        if (st1.isSuccess()) {
-            Log.i("FIT", "Successfully subscribed!");
-        } else {
-            Log.i("FIT", "There was a problem subscribing.");
-        }
-
-        // 2. Create a session object
-        // (provide a name, identifier, description and start time)
-        Date startTime = new Date();
-        Session session = new Session.Builder()
-                .setName(startTime.toString())
-                .setIdentifier(startTime.toString() + " - Run")
-                .setDescription("Running")
-                .setStartTimeMillis(startTime.getTime())
-                .setActivity(FitnessActivities.RUNNING)
+        DataSourcesRequest req = new DataSourcesRequest.Builder()
+                .setDataSourceTypes(DataSource.TYPE_RAW)
+                .setDataTypes(DataTypes.HEART_RATE_SUMMARY)
                 .build();
 
-        // 3. Invoke the Recording API with:
+        // 2. Invoke the Sensors API with:
         // - The Google API client object
-        // - The request object
-        PendingResult<Status> pendingResult = Fitness.RecordingApi.startSession(mClient, session);
+        // - The data sources request object
+        PendingResult<DataSourcesResult> pendingResult = Fitness.SensorsApi.findDataSources(mClient, req);
 
-        Status st2 = pendingResult.await();
-        if (st2.isSuccess()) {
-            Log.i("FIT", "Session started successfully.");
-        } else {
-            Log.i("FIT", "Session not started.");
-        }
-
+        // 3. Obtain the list of data sources asynchronously
+        pendingResult.setResultCallback(new ResultCallback<DataSourcesResult>() {
+            @Override
+            public void onResult(DataSourcesResult dataSourcesResult) {
+                for (DataSource ds : dataSourcesResult.getDataSources()) {
+                    String dsName = ds.getName();
+                    Device device = ds.getDevice();
+                    Log.d("sens", dsName);
+                    Log.d("sens", device.getModel());
+                }
+            }
+        });
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
