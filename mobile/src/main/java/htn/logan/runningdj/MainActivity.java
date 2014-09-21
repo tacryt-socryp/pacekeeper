@@ -150,44 +150,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
     }
 
     public void invokeFitnessAPIs() {
-        // Get the heart rate data type
-        DataType heartRate = DataTypes.HEART_RATE_BPM;
-        DataType heartSummary = DataTypes.HEART_RATE_SUMMARY;
-
-
-        // 1. Subscribe to fitness data (see previous examples)
-        PendingResult<Status> subscribeResult = Fitness.RecordingApi.subscribe(mClient, heartRate);
-
-        Status st1 = subscribeResult.await();
-        if (st1.isSuccess()) {
-            Log.i("FIT", "Successfully subscribed!");
-        } else {
-            Log.i("FIT", "There was a problem subscribing.");
-        }
-
-        // 2. Create a session object
-        // (provide a name, identifier, description and start time)
-        Date startTime = new Date();
-        Session session = new Session.Builder()
-                .setName(startTime.toString())
-                .setIdentifier(startTime.toString() + " - Run")
-                .setDescription("Running")
-                .setStartTimeMillis(startTime.getTime())
-                .setActivity(FitnessActivities.RUNNING)
-                .build();
-
-        // 3. Invoke the Recording API with:
-        // - The Google API client object
-        // - The request object
-        PendingResult<Status> pendingResult = Fitness.RecordingApi.startSession(mClient, session);
-
-        Status st2 = pendingResult.await();
-        if (st2.isSuccess()) {
-            Log.i("FIT", "Session started successfully.");
-        } else {
-            Log.i("FIT", "Session not started.");
-        }
-
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
