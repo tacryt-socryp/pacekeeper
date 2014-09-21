@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 20
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         applicationId "htn.logan.runningdj"
-        minSdkVersion 19
-        targetSdkVersion 19
+        minSdkVersion 20
+        targetSdkVersion 20
         versionCode 1
         versionName "1.0"
     }
@@ -22,5 +22,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
+    compile 'com.google.android.support:wearable:+'
     compile 'com.google.android.gms:play-services-wearable:+'
 }
