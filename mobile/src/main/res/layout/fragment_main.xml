@@ -17,6 +17,6 @@
         android:layout_height="141dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text=""
-        android:id="@+id/txbpm"
+        android:id="@+id/bpm"
         android:layout_weight="0.36" />
 </GridLayout>

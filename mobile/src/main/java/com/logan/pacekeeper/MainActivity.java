@@ -1,9 +1,10 @@
-package htn.logan.runningdj;
+package com.logan.pacekeeper;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Intent;
-import android.net.Network;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,31 +12,24 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.NotificationCompat.WearableExtender;
+
 import com.google.android.gms.fitness.*;
 import android.content.IntentSender;
-import com.google.android.gms.common.api.Status;
-
-import java.sql.Connection;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 
 public class MainActivity extends Activity implements ConnectionCallbacks, OnConnectionFailedListener {
 
 
     private static final int REQUEST_OAUTH = 1000;
     private static final int RESULT_OK = 2000;
-    private static boolean mPlayMobile = false;
+    //private static boolean mPlayMobile = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +50,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
         super.onStart();
         if (mClient == null || !mClient.isConnected()) {
             connectFitness();
+            createNotification("Runkeeper","Current BPM: 70");
         }
     }
 
@@ -130,16 +125,43 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
         return true;
     }
 
+    public void createNotification(String title, String text) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+        // Create builder for the main notification
+        NotificationCompat.Builder firstPageBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle(title + " 2")
+                        .setContentText(text);
+
+        // Create second page notification
+        Notification secondPageNotification =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle(title + " 2")
+                        .setContentText(text)
+                        .build();
+
+        // Add second page with wearable extender and extend the main notification
+        Notification twoPageNotification =
+                new WearableExtender()
+                        .addPage(secondPageNotification)
+                        .extend(firstPageBuilder)
+                        .build();
+
+        // Issue the notification
+        notificationManager.notify(001, twoPageNotification);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+
+        return (id == R.id.action_settings) || super.onOptionsItemSelected(item);
     }
 
     /**
@@ -155,7 +177,19 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            final Internal player = new Internal(rootView);
+            final Internal player = new Internal();
+            player.start();
+
+            try {
+                Thread.sleep(5000);
+                player.changeSpeed(0.75);
+                Thread.sleep(5000);
+                player.changeSpeed(1.0);
+                Thread.sleep(5000);
+                player.changeSpeed(1.25);
+            } catch(InterruptedException e) {}
+
+            /*
             Button btnPlay = (Button) rootView.findViewById(R.id.btnPlay);
 
             btnPlay.setOnClickListener(new View.OnClickListener() {
@@ -169,6 +203,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
                     }
                 }
             });
+            */
 
             return rootView;
         }

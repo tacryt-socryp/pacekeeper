@@ -1,4 +1,4 @@
-package htn.logan.runningdj;
+package com.logan.pacekeeper;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
