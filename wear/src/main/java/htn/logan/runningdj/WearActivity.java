@@ -108,6 +108,7 @@ public class WearActivity extends Activity implements SensorEventListener {
                 } else {
                     Log.d(getPackageName(), "SUCCESS: send Message: " + result.getStatus());
                 }
+                deltaSteps = 0.0;
             }
         }).start();
     }
@@ -149,6 +150,7 @@ public class WearActivity extends Activity implements SensorEventListener {
 
         if (updatePhone == 10) {
             deltaSteps = deltaSteps / 20;
+            startSteps = 0;
             updatePhone = 0;
             sendMessage(finalNode);
         }

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.util.Log;
 import android.view.View;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,7 +24,8 @@ public class Internal extends Activity {
     int playbackRate = 8000;
 
     public void changeSpeed(double factor) {
-        at.setPlaybackRate((int) (playbackRate * factor));
+       Log.d("playbackRate", Double.toString(factor));
+       at.setPlaybackRate((int) (playbackRate * factor));
     }
 
     Runnable m_audioGenerator = new Runnable() {
