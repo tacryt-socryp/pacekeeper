@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 'android-L'
-    buildToolsVersion '20.0.0'
+    compileSdkVersion 20
+    buildToolsVersion '20'
     defaultConfig {
         applicationId 'com.logan.pacekeeper'
-        minSdkVersion 'L'
-        targetSdkVersion 'L'
+        minSdkVersion 19
+        targetSdkVersion 20
         versionCode 1
         versionName '1.0'
     }
@@ -23,7 +23,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
-    compile 'com.google.android.support:wearable:+'
-    compile 'com.google.android.gms:play-services:5+'
     compile 'com.android.support:support-v4:20.0.+'
+    compile 'com.google.android.gms:play-services-wearable:+'
 }

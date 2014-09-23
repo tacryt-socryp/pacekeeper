@@ -16,12 +16,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.wearable.Wearable;
 
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.NotificationCompat.WearableExtender;
 
-import com.google.android.gms.fitness.*;
 import android.content.IntentSender;
 
 public class MainActivity extends Activity implements ConnectionCallbacks, OnConnectionFailedListener {
@@ -29,6 +29,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
 
     private static final int REQUEST_OAUTH = 1000;
     private static final int RESULT_OK = 2000;
+    private GoogleApiClient mClient = null;
     //private static boolean mPlayMobile = false;
 
     @Override
@@ -42,48 +43,41 @@ public class MainActivity extends Activity implements ConnectionCallbacks, OnCon
         }
     }
 
-
-    private GoogleApiClient mClient = null;
-
     @Override
     protected void onStart() {
         super.onStart();
         if (mClient == null || !mClient.isConnected()) {
-            connectFitness();
+            connectWear();
             createNotification("Runkeeper","Current BPM: 70");
         }
     }
 
-    private void connectFitness() {
+    private void connectWear() {
         Log.i("TAG", "Connecting...");
 
         // Create the Google API Client
         mClient = new GoogleApiClient.Builder(this)
-                // select the Fitness API
-                .addApi(Fitness.API)
-                        // specify the scopes of access
-                .addScope(FitnessScopes.SCOPE_ACTIVITY_READ)
-                .addScope(FitnessScopes.SCOPE_BODY_READ_WRITE)
-                        // provide callbacks
+                .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
 
         // Connect the Google API client
         mClient.connect();
+
+        startService(new Intent(this, ListenerService.class));
     }
     // Manage OAuth authentication
     @Override
     public void onConnectionFailed(ConnectionResult result) {
 
         // Error while connecting. Try to resolve using the pending intent returned.
-        if (result.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED ||
-                result.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
+        if (result.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED) {
             try {
                 // Request authentication
                 result.startResolutionForResult(this, REQUEST_OAUTH);
             } catch (IntentSender.SendIntentException e) {
-                Log.e("TAG", "Exception connecting to the fitness service", e);
+                Log.e("TAG", "Exception connecting to the wear service", e);
             }
         } else {
             Log.d("TAG", result.toString());

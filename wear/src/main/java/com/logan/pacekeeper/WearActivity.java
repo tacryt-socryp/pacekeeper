@@ -12,6 +12,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnApplyWindowInsetsListener;
 import android.view.WindowInsets;
+
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
@@ -23,78 +25,84 @@ import com.google.android.gms.wearable.NodeApi;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 
-public class WearActivity extends Activity implements SensorEventListener {
+public class WearActivity extends Activity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "androidWear";
     private TextView mTextViewStepCount;
     private TextView mTextViewStepDetect;
     private TextView mTextViewHeart;
 
+    float[] values;
+
     Node finalNode;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        // Keep the Wear screen always on (for testing only!)
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         super.onCreate(savedInstanceState);
 
-        mGoogleApiClient = (new GoogleApiClient.Builder(this)).addApi(Wearable.API).build();
-        mGoogleApiClient.connect();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        setContentView(R.layout.activity_wear);
 
-        ResultCallback result = new ResultCallback() {
-
-            public void onResult(Result result) {
-                onResult((NodeApi.GetConnectedNodesResult) result);
-            }
-
-            public void onResult(NodeApi.GetConnectedNodesResult nodesResult) {
-                for(Node node:nodesResult.getNodes()){
-                    finalNode = node;
-                }
-
-            }
-
-        };
-
-        Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).setResultCallback(result);
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
 
         final Resources res = getResources();
         final GridViewPager pager = (GridViewPager) findViewById(R.id.pager);
 
         pager.setOnApplyWindowInsetsListener(new OnApplyWindowInsetsListener() {
-
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
                 int rowMargin = res.getDimensionPixelOffset(R.dimen.page_row_margin);
                 int colMargin = res.getDimensionPixelOffset(R.dimen.page_row_margin);
                 pager.setPageMargins(rowMargin, colMargin);
-                getSensorData();
 
                 return insets;
             }
         });
 
         pager.setAdapter(new GridPagerAdapter(this, getFragmentManager()));
+        getSensorData();
+    }
 
-        /*
-        final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
-        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    private void resolveNode() {
+
+        Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
             @Override
-            public void onLayoutInflated(WatchViewStub stub) {
-                mTextViewStepCount = (TextView) stub.findViewById(R.id.step_count);
-                mTextViewStepDetect = (TextView) stub.findViewById(R.id.step_detect);
-                mTextViewHeart = (TextView) stub.findViewById(R.id.heart);
-                getSensorData();
+            public void onResult(NodeApi.GetConnectedNodesResult nodes) {
+                for (Node node : nodes.getNodes()) {
+                    finalNode = node;
+                }
             }
         });
-        */
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        resolveNode();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        //Improve your code
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        //Improve your code
     }
 
     private void getSensorData() {
@@ -119,30 +127,45 @@ public class WearActivity extends Activity implements SensorEventListener {
     }
 
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
-            String msg = "" + (int)event.values[0];
-            mTextViewHeart.setText(msg);
-            Log.d(TAG, msg);
+        if (event.values.length > 0) {
+            if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
+                String msg = "" + (int) event.values[0];
+                //mTextViewHeart.setText(msg);
+                Log.d(TAG, msg);
+            } else if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
+                String msg = "Count: " + (int) event.values[0];
+                //mTextViewStepCount.setText(msg);
+                Log.d(TAG, msg);
+            } else if (event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
+                String msg = "Detected at " + currentTimeStr();
+                //mTextViewStepDetect.setText(msg);
+                Log.d(TAG, msg);
+            } else {
+                Log.d(TAG, "Unknown sensor type");
+            }
+
+            values = event.values;
+            if (mGoogleApiClient != null && mGoogleApiClient.isConnected() && finalNode != null) {
+                sendMessage(finalNode);
+            }
         }
-        else if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-            String msg = "Count: " + (int)event.values[0];
-            mTextViewStepCount.setText(msg);
-            Log.d(TAG, msg);
+    }
+
+    public static byte[] FloatArray2ByteArray(float[] values){
+        ByteBuffer buffer = ByteBuffer.allocate(4 * values.length);
+
+        for (float value : values){
+            buffer.putFloat(value);
         }
-        else if (event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
-            String msg = "Detected at " + currentTimeStr();
-            mTextViewStepDetect.setText(msg);
-            Log.d(TAG, msg);
-        }
-        else
-            Log.d(TAG, "Unknown sensor type");
+
+        return buffer.array();
     }
 
     private void sendMessage(final Node finalNode) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                byte[] payload = {};
+                byte[] payload = FloatArray2ByteArray(values);
 
                 MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, finalNode.getId(), "/LAUNCH", payload).await();
                 if (!result.getStatus().isSuccess()) {

@@ -68,7 +68,7 @@ public class GridPagerAdapter extends FragmentGridPagerAdapter {
                     new Page(R.string.welcome_title, R.string.welcome_text, Gravity.BOTTOM)
             },
             {
-                    new Page(R.string.dismiss_title, R.string.dismiss_text, Gravity.BOTTOM)
+                    new Page(R.string.welcome_title, R.string.welcome_text, Gravity.BOTTOM)
             }
     };
 
