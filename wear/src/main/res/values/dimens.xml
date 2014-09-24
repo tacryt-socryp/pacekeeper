@@ -1,4 +1,0 @@
-<resources>
-    <dimen name="page_row_margin">100dp</dimen>
-    <dimen name="page_column_margin">50dp</dimen>
-</resources>

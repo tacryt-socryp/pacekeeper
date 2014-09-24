@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.wearable.view.GridViewPager
+<android.support.wearable.view.WatchViewStub
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/pager"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/watch_view_stub"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:keepScreenOn="true"
-    android:layout_marginBottom="20dp"
-    android:layout_marginLeft="10dp"
-    android:layout_marginRight="10dp"
-    />
+    app:rectLayout="@layout/rect_activity_wear"
+    app:roundLayout="@layout/round_activity_wear"
+    tools:context=".WearActivity"
+    tools:deviceIds="wear">
+</android.support.wearable.view.WatchViewStub>
